@@ -7,6 +7,8 @@ import os
 from typing import Dict, List, Tuple, Optional
 from datetime import datetime
 import json
+from flask import Flask
+import threading
 
 load_dotenv()
 token = os.getenv("DISCORD_TOKEN")
@@ -264,6 +266,19 @@ class SplitwiseBot:
         return True, f"Removed expense: {expense_to_remove['description']} (${amount:.2f})"
 
 splitwise = SplitwiseBot()
+
+app = Flask(__name__)
+
+@app.route('/')
+def health_check():
+    return "Bot is running!", 200
+
+def run_flask():
+    app.run(host='0.0.0.0', port=10000)
+
+flask_thread = threading.Thread(target=run_flask)
+flask_thread.daemon = True
+flask_thread.start()
 
 @bot.event
 async def on_ready():
