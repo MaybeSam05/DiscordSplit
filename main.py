@@ -9,6 +9,7 @@ from datetime import datetime
 import json
 from flask import Flask
 import threading
+import random
 
 load_dotenv()
 token = os.getenv("DISCORD_TOKEN")
@@ -288,6 +289,21 @@ async def on_ready():
         print(f"Synced {len(synced)} command(s)")
     except Exception as e:
         print(e)
+
+@bot.event
+async def on_message(message):
+    if message.author == bot.user:
+        return
+    
+    if bot.user.mentioned_in(message):
+        responses = [
+            f"Hi {message.author.display_name}, I love khicidi!",
+            f"Sorry can't talk right now {message.author.display_name}, I have to go to Pennsylvania.",
+            f"Alc? Did {message.author.display_name} say Alc???"
+        ]
+        await message.channel.send(random.choice(responses))
+    
+    await bot.process_commands(message)
 
 @bot.tree.command(name="init", description="Initialize the group with all members")
 @app_commands.describe(
