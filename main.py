@@ -10,9 +10,12 @@ import json
 from flask import Flask
 import threading
 import random
+import openai
+import aiohttp
 
 load_dotenv()
 token = os.getenv("DISCORD_TOKEN")
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 handler = logging.FileHandler(filename="discord.log", encoding="utf-8", mode="w")
 intents = discord.Intents.default()
@@ -290,18 +293,48 @@ async def on_ready():
     except Exception as e:
         print(e)
 
+async def generate_chat_response(user_name: str, user_message: str) -> str:
+    try:
+        with open('chats.txt', 'r', encoding='utf-8') as f:
+            chat_content = f.read()
+        
+        prompt = f"""Based on this chat log, generate a funny 1-sentence response that someone with this texting style and slang would say. The response should be directed at {user_name} and should match the casual, slang-heavy tone of the chat.
+
+User's message: "{user_message}"
+
+Chat content: {chat_content}
+
+Generate a funny response to what {user_name} said:"""
+        
+        client = openai.OpenAI()
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are a gen-z slang bot that generates responses in the style of the chat log. Keep responses as a 18 year old tuff teenager would say,casual, use slang, don't surround your response in quotes, don't use any emojis, say goofy shit, don't be too serious."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=50,
+            temperature=0.8
+        )
+        
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        print(f"Error generating response: {e}")
+        fallback_responses = [
+            f"Hi {user_name}, I love khicidi!",
+            f"Sorry can't talk right now {user_name}, I have to go to Pennsylvania.",
+            f"Alc? Did {user_name} say Alc???"
+        ]
+        return random.choice(fallback_responses)
+
 @bot.event
 async def on_message(message):
     if message.author == bot.user:
         return
     
     if bot.user.mentioned_in(message):
-        responses = [
-            f"Hi {message.author.display_name}, I love khicidi!",
-            f"Sorry can't talk right now {message.author.display_name}, I have to go to Pennsylvania.",
-            f"Alc? Did {message.author.display_name} say Alc???"
-        ]
-        await message.channel.send(random.choice(responses))
+        response = await generate_chat_response(message.author.display_name, message.content)
+        await message.channel.send(response)
     
     await bot.process_commands(message)
 
