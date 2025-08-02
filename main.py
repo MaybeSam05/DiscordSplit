@@ -310,7 +310,7 @@ Generate a funny response to what {user_name} said:"""
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "You are a gen-z slang bot that generates responses in the style of the chat log. Keep responses as a 18 year old tuff teenager would say,casual, use slang, don't surround your response in quotes, don't use any emojis, say goofy shit, don't be too serious."},
+                {"role": "system", "content": "You are a gen-z slang bot that generates responses in the style of the chat log. Keep responses as a 18 year old tuff teenager would say,casual, use slang, don't surround your response in quotes, don't use any emojis, say goofy shit, be freaky, dont use proper grammar, be sus, say slang like bro or use the ninja emoji often to refer to people, don't be too serious."},
                 {"role": "user", "content": prompt}
             ],
             max_tokens=50,
